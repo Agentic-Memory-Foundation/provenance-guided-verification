@@ -10,7 +10,6 @@
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{enumitem}
-\usepackage{xurl}
 \usepackage{seqsplit}
 \usepackage{xcolor}
 \usepackage{tikz}
@@ -35,9 +34,6 @@
   \setlength{\abovedisplayskip}{4pt plus 1pt minus 1pt}%
   \setlength{\belowdisplayskip}{4pt plus 1pt minus 1pt}%
 }
-
-\newtheorem{definition}{Definition}
-\newtheorem{proposition}{Proposition}
 
 \title{Choosing the Second Check: Provenance-Guided Verification for AI Agents}
 
@@ -74,7 +70,6 @@ When standardizing on a single agent harness, system prompts, context rules, and
 \keywords{agentic AI, shared blindness, provenance, temporal policy, record reconciliation, dynamic routing, verification cascades, model cascades}
 
 \begin{document}
-\setcitestyle{numbers,sort,nocompress}
 \maketitle
 
 \section{Introduction}
@@ -219,17 +214,17 @@ We present three worked examples to illustrate the mechanics of our specialists:
 \paragraph{Example 1 (Verifier B Helps on Temporal Mismatch).}
 \begin{itemize}
     \item \textbf{Task:} Expense claim for travel lodging on August 12, 2026, totaling \$220.
-    \item \textbf{Primary Agent A:} Applies `travel_policy_Q1.pdf` (cap is \$200), outputs \code{Rejected(Amount)}.
-    \item \textbf{Trace $\tau_A$:} $S_A = \{\text{`travel_policy_Q1.pdf`}\}$, $V_A = \{\text{`v1.0`}\}$, $\mathcal{C}_A = \{\text{"lodging capped at \$200"}\}$, $O_A = \{\text{text_matching}\}$.
-    \item \textbf{PGV Decision:} The selector detects that the transaction date (Aug 12) is outside the effective range of the cited policy `v1.0` (ends June 30). It routes to \textbf{Verifier B} (policy-first).
-    \item \textbf{Verifier B Action:} Verifier B queries the policy repository metadata, finds `travel_policy_Q3.pdf` (v2.0, effective July 1), sees the cap is \$250. It overrides A's decision and approves the \$220 lodging, producing the correct verdict \code{Approved(220.00)}.
+    \item \textbf{Primary Agent A:} Applies \code{travel\_policy\_Q1.pdf} (cap is \$200), outputs \code{Rejected(Amount)}.
+    \item \textbf{Trace $\tau_A$:} $S_A = \{\text{\code{travel\_policy\_Q1.pdf}}\}$, $V_A = \{\text{\code{v1.0}}\}$, $\mathcal{C}_A = \{\text{"lodging capped at \$200"}\}$, $O_A = \{\text{text\_matching}\}$.
+    \item \textbf{PGV Decision:} The selector detects that the transaction date (Aug 12) is outside the effective range of the cited policy \code{v1.0} (ends June 30). It routes to \textbf{Verifier B} (policy-first).
+    \item \textbf{Verifier B Action:} Verifier B queries the policy repository metadata, finds \code{travel\_policy\_Q3.pdf} (v2.0, effective July 1), sees the cap is \$250. It overrides A's decision and approves the \$220 lodging, producing the correct verdict \code{Approved(220.00)}.
 \end{itemize}
 
 \paragraph{Example 2 (Verifier C Helps on Arithmetic Discrepancy).}
 \begin{itemize}
     \item \textbf{Task:} Reconcile invoice for five software licenses. The primary agent A approves the invoice total of \$1,245.50.
     \item \textbf{Primary Agent A:} Outputs \code{Approved(1245.50)}.
-    \item \textbf{Trace $\tau_A$:} $S_A = \{\text{`software_invoice_982.pdf`}\}$, $O_A = \{\text{text_matching}\}$, but no math or code execution logs.
+    \item \textbf{Trace $\tau_A$:} $S_A = \{\text{\code{software\_invoice\_982.pdf}}\}$, $O_A = \{\text{text\_matching}\}$, but no math or code execution logs.
     \item \textbf{PGV Decision:} The selector notices a high-value transaction approved without any record summation in the trace. It routes to \textbf{Verifier C} (record-first).
     \item \textbf{Verifier C Action:} Verifier C parses the receipt, extracts the five unit prices (\$199.00 each), writes and runs a Python script to calculate $5 \times 199.00 = 995.00$. It detects a discrepancy of \$250.50. It overrides A's decision, producing the correct verdict \code{Rejected(Discrepancy: Math)}.
 \end{itemize}
@@ -238,7 +233,7 @@ We present three worked examples to illustrate the mechanics of our specialists:
 \begin{itemize}
     \item \textbf{Task:} Claim for an international flight. The receipt file is corrupted and shows a blank screen.
     \item \textbf{Primary Agent A:} Guesses the amount from the ledger entry and outputs \code{Approved(850.00)}.
-    \item \textbf{Trace $\tau_A$:} $S_A = \{\text{`flight_receipt_corrupt.pdf`}\}$, citation is blank.
+    \item \textbf{Trace $\tau_A$:} $S_A = \{\text{\code{flight\_receipt\_corrupt.pdf}}\}$, citation is blank.
     \item \textbf{PGV Decision:} The selector detects a critical source document accessed but zero citation coverage. It flags this as a shared upstream omission and routes to \textbf{Defer}.
     \item \textbf{Result:} The system avoids a false approval by sending the case to human audit, validating Hypothesis 3.
 \end{itemize}
@@ -374,8 +369,8 @@ Primary Failure Handled & Generic representation errors & Domain mismatch & Harn
 
 \begin{figure}[h]
 \centering
-\Description{Key figure: Cost-reliability frontier comparing different verification policies.}
-\begin{tikzpicture}[nodeDistance=1.5cm, auto]
+%\Description{Key figure: Cost-reliability frontier comparing different verification policies.}
+\begin{tikzpicture}[node distance=1.5cm, auto]
     % Draw a conceptual cost-reliability curve
     \draw[->, thick] (0,0) -- (6,0) node[right] {Expected Verification Cost};
     \draw[->, thick] (0,0) -- (0,4) node[above] {Final Reliability (1 - Error Rate)};
