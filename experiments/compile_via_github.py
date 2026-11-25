@@ -32,7 +32,7 @@ def compile_via_github():
 
     print("Step 3: Inlining bibliography...")
     bib_block = r"""
-\begin{thebibliography}{22}
+\begin{thebibliography}{23}
 \bibitem{paul2026shared} P. Paul, S. Sarkar. 2026. Shared Blindness in Agentic AI. AMF Working Paper.
 \bibitem{knight1986experimental} J. Knight, N. Leveson. 1986. An Experimental Evaluation of the Assumption of Independence in Multiversion Programming. IEEE Transactions on Software Engineering SE-12, 1 (1986), 96--109.
 \bibitem{avizienis1985nversion} A. Avizienis. 1985. The N-Version Approach to Fault-Tolerant Software. IEEE Transactions on Software Engineering SE-11, 12 (1985), 1491--1501.
@@ -47,14 +47,15 @@ def compile_via_github():
 \bibitem{madaan2023self} A. Madaan et al. 2023. Self-Refine: Iterative Refinement with Self-Feedback. Advances in Neural Information Processing Systems 36 (2023).
 \bibitem{saunders2022self} W. Saunders et al. 2022. Self-Critiquing Models for Assisting Human Evaluators. arXiv preprint arXiv:2206.05802 (2022).
 \bibitem{rothermel1997safe} G. Rothermel, M. J. Harrold. 1997. A safe, efficient regression test selection technique. ACM Transactions on Software Engineering and Methodology (TOSEM) 6, 2 (1997), 173--210.
-\bibitem{gligoric2015practical} M. Gligoric, L. Elousha, D. Marinov. 2015. Practical regression test selection with Ekstazi. Proceedings of the 2015 International Symposium on Software Testing and Analysis (2015), 225--235.
+\bibitem{gligoric2015practical} M. Gligoric, L. Eloushn, D. Marinov. 2015. Practical regression test selection with Ekstazi. Proceedings of the 2015 International Symposium on Software Testing and Analysis (2015), 225--235.
 \bibitem{kuncheva2003measures} L. Kuncheva, C. Whitaker. 2003. Measures of Diversity in Classifier Ensembles and Their Relationship with the Ensemble Accuracy. Machine Learning 51, 2 (2003), 181--207.
 \bibitem{goel2025great} V. Goel et~al. 2025. The Great Convergence: frontier models are making the same errors. arXiv preprint arXiv:2501.12345 (2025).
 \bibitem{kim2025correlated} J. Kim et~al. 2025. Correlated Mistakes in Modern Large Language Models. arXiv preprint arXiv:2502.54321 (2025).
-\bibitem{madras2018predict} D. Madras, T. Pitassi, R. Zemel. 2018. Predict and defer: Learning to defer with multiple experts. Advances in Neural Information Processing Systems 31 (2018).
+\bibitem{madras2018predict} D. Madras, T. Pitassi, R. Zemel. 2018. Predict Responsibly: Improving Fairness and Accuracy by Learning to Defer. Advances in Neural Information Processing Systems 31 (2018).
 \bibitem{verma2020learning} A. Verma et al. 2020. Learning to defer with multiple experts. arXiv preprint arXiv:2010.05245 (2020).
-\bibitem{routellm2024} I. An et al. 2024. RouteLLM: Learning to Route LLMs with Preference Data. arXiv preprint arXiv:2406.18665 (2024).
-\bibitem{cemri2025process} A. Cemri et al. 2025. Process-Level and Trace-Based Verification for Autonomous AI Agents. Working Paper, AI Safety Alliance (2025).
+\bibitem{routellm2024} I. Ong et al. 2024. RouteLLM: Learning to Route LLMs with Preference Data. arXiv preprint arXiv:2406.18665 (2024).
+\bibitem{agrawal2025why} A. Agrawal et al. 2025. Why Do Multi-Agent LLM Systems Fail? arXiv preprint arXiv:2503.13657 (2025).
+\bibitem{connor1987sample} R. J. Connor. 1987. Sample size for testing differences in proportions for the paired-sample design. Biometrics 43, 1 (1987), 207--211.
 \end{thebibliography}
 """
 
