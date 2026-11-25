@@ -79,8 +79,53 @@ def compile_via_github():
     raw_url = f"https://raw.githubusercontent.com/Agentic-Memory-Foundation/provenance-guided-verification/{commit_hash}/paper_flat.tex"
     print(f"Raw File URL: {raw_url}")
 
-    print("Step 6: Sending request to latexonline.cc...")
-    # URL encode the raw file URL
+    # Try local Docker compilation first if docker is available and texlive image is present
+    print("Step 6: Attempting local Docker compilation (to render full vector figures)...")
+    try:
+        # Check if docker command is available
+        docker_check = subprocess.run(["which", "docker"], capture_output=True, text=True)
+        if docker_check.returncode == 0:
+            print("Docker is available. Running pdflatex twice inside texlive/texlive container...")
+            # Run first pass
+            res1 = subprocess.run([
+                "docker", "run", "--rm", 
+                "-v", f"{os.getcwd()}:/workdir", 
+                "-w", "/workdir", 
+                "texlive/texlive", 
+                "pdflatex", "-interaction=nonstopmode", "paper_flat.tex"
+            ], capture_output=True, text=True)
+            
+            if res1.returncode == 0:
+                # Run second pass to resolve references
+                res2 = subprocess.run([
+                    "docker", "run", "--rm", 
+                    "-v", f"{os.getcwd()}:/workdir", 
+                    "-w", "/workdir", 
+                    "texlive/texlive", 
+                    "pdflatex", "-interaction=nonstopmode", "paper_flat.tex"
+                ], capture_output=True, text=True)
+                
+                if res2.returncode == 0 and os.path.exists("paper_flat.pdf"):
+                    print("Local Docker compilation succeeded!")
+                    os.rename("paper_flat.pdf", "paper.pdf")
+                    print("Copied paper_flat.pdf to paper.pdf.")
+                    # Clean up temporary build artifacts
+                    for ext in ["aux", "log", "out"]:
+                        temp_file = f"paper_flat.{ext}"
+                        if os.path.exists(temp_file):
+                            os.remove(temp_file)
+                    print("Step 7: PDF compiled locally with high-fidelity vector figures and saved to paper.pdf!")
+                    return True
+                else:
+                    print("Second pass compilation failed or paper_flat.pdf missing.")
+            else:
+                print("First pass compilation failed.")
+        else:
+            print("Docker not found in PATH.")
+    except Exception as docker_err:
+        print(f"Local Docker compilation attempt failed: {docker_err}")
+
+    print("Falling back to remote compilation via latexonline.cc (Note: Local figures will not render in the remote-compiled fallback PDF)...")
     compile_url = f"https://latexonline.cc/compile?url={raw_url}"
     print(f"Compilation URL: {compile_url}")
 
@@ -97,7 +142,7 @@ def compile_via_github():
                 print("PDF Compiled successfully! Saving to paper.pdf...")
                 with open('paper.pdf', 'wb') as f:
                     f.write(response.read())
-                print("Step 7: PDF compiled and saved to paper.pdf!")
+                print("Step 7: PDF compiled remotely and saved to paper.pdf!")
                 return True
             else:
                 print(f"Error compiling paper. Status code: {response.status}")
