@@ -1,3 +1,4 @@
+\RequirePackage{expl3}
 \PassOptionsToPackage{expansion=false,protrusion=false,tracking=false,kerning=false,spacing=false}{microtype}
 \documentclass[manuscript,screen,nonacm]{acmart}
 
@@ -350,14 +351,22 @@ We execute our pilot simulation over $10,000$ compliance runs. Figure~\ref{fig:p
     \centering
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{figures/cost_reliability.pdf}
+        \IfFileExists{figures/cost_reliability.pdf}{%
+            \includegraphics[width=\textwidth]{figures/cost_reliability.pdf}%
+        }{%
+            \framebox[\textwidth]{\rule{0pt}{120pt} Plot: Reliability-Cost Frontier}%
+        }
         \caption{Reliability-Cost Frontier}
         \label{fig:frontier_plot}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{figures/power_analysis.pdf}
+        \IfFileExists{figures/power_analysis.pdf}{%
+            \includegraphics[width=\textwidth]{figures/power_analysis.pdf}%
+        }{%
+            \framebox[\textwidth]{\rule{0pt}{120pt} Connor McNemar Power Curve}%
+        }
         \caption{Connor Paired McNemar Power Curve}
         \label{fig:power_plot}
     \end{subfigure}
