@@ -504,7 +504,7 @@ def run_simulation():
     
     # Generate Plots
     # Plot 1: Expected Cost vs. Final Error Rate (Reliability-Cost Frontier)
-    plt.figure(figsize=(7.5, 5))
+    plt.figure(figsize=(7.5, 4.5))
     
     policy_styles = {
         'Agent A Alone': ('black', 'o'),
