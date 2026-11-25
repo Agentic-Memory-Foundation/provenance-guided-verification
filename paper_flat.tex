@@ -64,10 +64,19 @@
 \acmDOI{}
 
 \newcommand{\MixNeffKOne}{1.45}
-\newcommand{\PilotDisc}{19.0}
-\newcommand{\PilotPsi}{94.7}
-\newcommand{\PilotRequiredCases}{36}
-\newcommand{\PilotDiscordantRequired}{7}
+\newcommand{\PilotDisc}{18.0}
+\newcommand{\PilotPsi}{100.0}
+\newcommand{\PilotRequiredCases}{28}
+\newcommand{\PilotDiscordantRequired}{5}
+\newcommand{\PilotDiscHard}{5.0}
+\newcommand{\PilotPsiHard}{80.0}
+\newcommand{\PilotRequiredCasesHard}{360}
+\newcommand{\PilotDiscordantRequiredHard}{18}
+\newcommand{\BreakEvenFidelity}{79.0}
+\newcommand{\EscalationRecall}{81.6}
+\newcommand{\EscalationRate}{37.0}
+\newcommand{\OmissionDeferRecall}{99.7}
+\newcommand{\CleanFalseDeferral}{2.6}
 \newcommand{\PolicyAError}{65.0}
 \newcommand{\PolicyBRecovery}{90.0}
 \newcommand{\PolicyCRecovery}{15.0}
@@ -94,10 +103,10 @@
 
 
 \begin{abstract}
-When standardizing on a single agent harness, system prompts, context rules, and tool sets become homogeneous, causing agents to share identical blind spots. This phenomenon of \emph{shared blindness} severely undermines simple multi-agent verification panels, as checkers fail on the exact same edge cases as the primary generator. While prior work advocates for general harness diversity or uniform human expert allocation, we propose a dynamic alternative: \emph{provenance-guided verification path selection}. Rather than running a static suite of checkers, our system dynamically selects an optimal second check based on the execution trace and lineage of the primary agent's first attempt. In this paper, we formalize this framework as a cost-sensitive decision problem and present a rigorous preregistered research design alongside a validation simulation pilot. We test three core hypotheses: verifier complementarity, selection value, and the common-source failure limit. In the domain of policy-to-record reconciliation, we construct three specialized execution paths: a primary agent, a source-focused temporal policy verifier, and a computational ledger verifier. Our simulation pilot establishes that trace features (such as citation coverage, policy version matching, and arithmetic operations) allow a simple selector to route cases to the verifier most likely to recover the primary agent's specific failure mode, reducing uncaught errors to \PgvErrorRate\% and total expected cost to \$\PgvCost\ per case, approaching the theoretical Oracle boundary. We outline our statistical plan using the Connor exact paired McNemar formula, detail an experimental design that isolates escalation from routing, and predefine failure diagnostics to handle negative or inconclusive outcomes.
+When standardizing on a single agent harness, system prompts, context rules, and tool sets become homogeneous, causing agents to share identical blind spots. This phenomenon of \emph{shared blindness} severely undermines simple multi-agent verification panels, as checkers fail on the exact same edge cases as the primary generator. While prior work advocates for general harness diversity or uniform human expert allocation, we propose a dynamic alternative: \emph{provenance-guided verification path selection}. Rather than running a static suite of checkers, our system dynamically selects an optimal second check based on the execution trace and lineage of the primary agent's first attempt. In this paper, we formalize this framework as a cost-sensitive decision problem and present a registered-report-style protocol accompanied by a rigorous pipeline validation simulation. While a simulation cannot replace empirical evaluation, it serves to map the theoretical bounds, calculate statistical power, and identify the break-even trace selector fidelity ($\BreakEvenFidelity\%$) below which trace routing underperforms simpler metadata heuristics. We outline an exact statistical plan using binomial sign tests and Wilcoxon signed-rank tests, detail an experimental design that isolates escalation from routing, and predefine failure diagnostics to handle negative or inconclusive outcomes.
 \end{abstract}
 
-\keywords{agentic AI, shared blindness, provenance, temporal policy, record reconciliation, dynamic routing, verification cascades, learning to defer, McNemar power}
+\keywords{agentic AI, shared blindness, provenance, temporal policy, record reconciliation, dynamic routing, verification cascades, learning to defer, exact binomial power}
 
 \begin{document}
 \maketitle
@@ -111,14 +120,14 @@ Shared blindness arises when the entire system standardizes on a homogeneous \em
 
 To mitigate this, one could deploy completely diverse harnesses or allocate expensive human experts. Yet, static harness diversity is costly, and human reviewers are scarce. This paper asks: \emph{Can we instead route verification dynamically?} In other words, can an agent system inspect its own initial execution trace—its citations, the versions of documents it read, and the mathematical operations it performed—to select a specialized verification path that is uniquely capable of catching the failures likely to survive its first pass?
 
-We call this approach \emph{Provenance-Guided Verification (PGV)}. It shifts the paradigm from static, general-purpose multi-agent panels to per-case dynamic selection among complementary, specialized checkers, using evidence available at decision time. In this study, we define a concrete, preregistered research design and support it with a pilot simulation to test PGV in the high-stakes compliance domain of **policy-to-record reconciliation** (reconciling corporate or clinical decisions against temporal policy versions and transaction ledger items).
+We call this approach \emph{Provenance-Guided Verification (PGV)}. It shifts the paradigm from static, general-purpose multi-agent panels to per-case dynamic selection among complementary, specialized checkers, using evidence available at decision time. In this study, we define a concrete, registered-report-style protocol and support it with a pipeline validation simulation to test PGV in the high-stakes compliance domain of policy-to-record reconciliation (reconciling corporate or clinical decisions against temporal policy versions and transaction ledger items).
 
 \textbf{New Contribution:} Unlike prior work on model cascades (which route queries based on static task categories or overall model confidence), our approach uses the \emph{per-case execution provenance}—the ``how'' of the primary generation—to predict and correct specific failure modes. We establish:
 \begin{itemize}
     \item A formalization of provenance-guided verification as a cost-sensitive, bounded decision problem.
     \item Three falsifiable hypotheses regarding complementarity, selection value, and the common-source limit.
     \item A concrete, auditable experimental setup in policy-to-record reconciliation with temporal version mismatches, arithmetic discrepancies, and unresolvable omissions.
-    \item An evaluation pipeline that cleanly separates the decision to escalate from the choice of verifier, verified using a rigorous simulation pilot with complete reliability-cost frontier analysis.
+    \item An evaluation pipeline that cleanly separates the decision to escalate from the choice of verifier, verified using a validation simulation that identifies the break-even trace fidelity required for PGV to add value.
 \end{itemize}
 
 \section{Related Work and Novelty}
@@ -139,7 +148,7 @@ Our selector is formally related to the ``learning to defer'' framework, particu
 Model cascades, such as FrugalGPT~\cite{chen2023frugalgpt}, dynamically route queries to progressively larger models based on confidence thresholds to minimize API costs. Selective prediction allows a model to reject making a prediction when its confidence is low~\cite{chow1970optimum,geifman2017selective}. While highly effective for cost-efficiency, cascades treat downstream models as general-purpose updates of upstream ones, rather than specialized checkers designed for complementary, distinct failure modes.
 
 \paragraph{Agent Verification and Self-Correction.}
-In the agent literature, systems like Reflexion~\cite{shinn2023reflexion} and Self-Refine~\cite{madaan2023self} use iterative self-critique. However, they rely on the same primary model and harness to correct its own errors, which is severely limited by self-preference biases and shared blindness~\cite{saunders2022self}. Process-level and trace-based verification frameworks~\cite{cemri2025process} have emerged to track execution steps, but they do not use these traces for dynamic verifier routing.
+In the agent literature, systems like Reflexion~\cite{shinn2023reflexion} and Self-Refine~\cite{madaan2023self} use iterative self-critique. However, they rely on the same primary model and harness to correct its own errors, which is severely limited by self-preference biases and shared blindness~\cite{saunders2022self}. Multi-agent failure taxonomies, such as the Multi-Agent System Failure Taxonomy (MAST) proposed by Agrawal et al.~\cite{agrawal2025why}, provide empirical structures of multi-agent failures, but they do not use these traces for dynamic verifier routing.
 
 \paragraph{Our Novelty and Closest Prior Method.}
 The closest prior methods in literature are \textbf{Static Class-Based Routing} (allocating specialized verifiers based on task metadata or input query type) and \textbf{Confidence-Based Cascades}. Our proposed decision rule is fundamentally distinct: it selects the verifier based on the \emph{execution provenance} $\tau_A$ of the first attempt. This constitutes a novel paradigm of \emph{post-execution provenance routing}.
@@ -191,31 +200,30 @@ When a verifier $j \in \{B, C\}$ is invoked, it evaluates $(x, \hat{y}_A, \tau_A
         \text{Defer} & \text{if conflict is unresolved (requires human audit)}
     \end{cases}
 \end{equation}
-The validity of evidence $e_j$ is determined via deterministic code assertions (e.g., checking that the calculated receipt sum matches the invoice sum exactly) or, if assertions fail to resolve the conflict, it is routed to human audit.
+The validity of evidence $e_j$ is determined via deterministic code assertions (e.g., checking that the calculated receipt sum matches the invoice sum exactly) or, if assertions fail to resolve the conflict, it is routed to human audit. Human audit is assumed to act as a perfect, error-free corrector but is bounded by its high cost $C_{\text{def}}$.
 
 \subsection{Cost-Sensitive Loss Function}
 To prevent the selector from gaming the primary endpoint by simply deferring all difficult cases, we define a joint cost-sensitive loss function $\mathcal{L}$ that explicitly prices uncaught errors, verifier calls, and human audits:
 \begin{equation}
     \mathcal{L}(y_{\text{final}}, y_{\text{true}}, a) = \mathbb{I}(y_{\text{final}} \neq y_{\text{true}} \land y_{\text{final}} \neq \text{Defer}) \cdot C_{\text{err}} + \mathbb{I}(y_{\text{final}} = \text{Defer}) \cdot C_{\text{def}} + \sum_{j \in \{B, C\}} \mathbb{I}(a = \text{Invoke } j) \cdot C_j
 \end{equation}
-where $C_{\text{err}}$ is the penalty of allowing an incorrect compliance decision to pass, $C_{\text{def}}$ is the cost of human intervention, and $C_j$ is the execution cost of verifier $j$. This formulation forces the selector to balance verification accuracy against operational expenditure and human labor scarcity.
+where $C_{\text{err}}$ is the penalty of allowing an incorrect compliance decision to pass (which can be separated into false approvals $C_{\text{fa}}$ and false rejections $C_{\text{fr}}$, though we use a single mean error penalty here), $C_{\text{def}}$ is the cost of human intervention, and $C_j$ is the execution cost of verifier $j$. This formulation forces the selector to balance verification accuracy against operational expenditure and human labor scarcity. For our validation pilot, we set the cost parameters explicitly to $C_A = 1.0$ (primary run), $C_B = 1.5$, $C_C = 1.5$, $C_{\text{def}} = 10.0$, and $C_{\text{err}} = 30.0$.
 
 \subsection{Falsifiable Hypotheses}
 Our study tests three distinct, falsifiable hypotheses:
 
 \paragraph{Hypothesis 1 (Complementarity).}
-\emph{Verifier B (policy-first) and Verifier C (record-first) recover disjoint subsets of Agent A's errors, even after controlling for individual verifier accuracy and overall task difficulty.}
-Let $E_A = \{x \mid \hat{y}_A \neq y_{\text{true}}\}$ be the set of errors made by $A$. Let $R_B \subset E_A$ and $R_C \subset E_A$ be the cases where $B$ and $C$ successfully recover the correct answer. We claim that the symmetric differences are non-empty and statistically significant, evaluated via an exact paired McNemar test:
+\emph{Verifier B (policy-first) and Verifier C (record-first) recover disjoint subsets of Agent A's errors on the escalated error subset.}
+Let $E_A = \{x \mid \hat{y}_A \neq y_{\text{true}} \land E(x, \hat{y}_A, \tau_A) = 1\}$ be the set of escalated errors made by $A$. Let $R_B \subset E_A$ and $R_C \subset E_A$ be the cases where $B$ and $C$ successfully recover the correct answer. We claim that the symmetric differences are non-empty and statistically significant:
 \begin{equation}
     \Pr(x \in R_B \setminus R_C \mid x \in E_A) > \delta \quad \text{and} \quad \Pr(x \in R_C \setminus R_B \mid x \in E_A) > \delta
 \end{equation}
-where $\delta > 0.05$ represents the minimal complementary effect size.
+where $\delta > 0.05$ represents the minimal complementary effect size. This is tested using two separate one-sided binomial tests for the recovery rates of each specialist on the other's failure domain.
 
 \paragraph{Hypothesis 2 (Selection Value).}
-\emph{Under a comparable verification budget, a provenance-guided selector $\pi_{\text{prov}}$ reduces the expected cost-sensitive loss relative to the best fixed verifier policy $\pi_{\text{fixed-j}}$ on the escalated cases.}
-At matched cost:
+\emph{A provenance-guided selector $\pi_{\text{prov}}$ reduces the expected cost-sensitive loss relative to the best fixed verifier policy $\pi_{\text{fixed-j}}$ and metadata-only heuristics.}
 \begin{equation}
-    \mathbb{E}[\mathcal{L} \mid \pi_{\text{prov}}] < \min \left( \mathbb{E}[\mathcal{L} \mid \pi_{\text{fixed-B}}], \mathbb{E}[\mathcal{L} \mid \pi_{\text{fixed-C}}] \right)
+    \mathbb{E}[\mathcal{L} \mid \pi_{\text{prov}}] < \min \left( \mathbb{E}[\mathcal{L} \mid \pi_{\text{fixed-B}}], \mathbb{E}[\mathcal{L} \mid \pi_{\text{fixed-C}}], \mathbb{E}[\mathcal{L} \mid \pi_{\text{heur}}] \right)
 \end{equation}
 
 \paragraph{Hypothesis 3 (Common-Source Limit).}
@@ -229,8 +237,8 @@ alongside the rate of false deferrals (deferring on resolvable cases).
 \subsection{Interpretation of Outcomes}
 We predefine how to interpret the results of our empirical run:
 \begin{itemize}
-    \item \textbf{A Tie:} If $\pi_{\text{prov}}$ performs identically to the best fixed verifier, the available trace features $\tau_A$ do not provide enough information to predict which failure mode is active, or the escalation trigger fails to capture relevant signals.
-    \item \textbf{A Loss:} If $\pi_{\text{prov}}$ underperforms the fixed baseline, it implies the selector has learned a brittle mapping that overfits to specific task distributions or suffers from label leakage in the training split.
+    \item \textbf{A Tie / Headroom Diagnostic:} If $\pi_{\text{prov}}$ performs identically to the best fixed verifier, the available trace features $\tau_A$ do not provide enough information to predict which failure mode is active, or the escalation trigger fails to capture relevant signals. We measure the Oracle Headroom ($\mathbb{E}[\mathcal{L} \mid \pi_{\text{heuristic}}] - \mathbb{E}[\mathcal{L} \mid \pi_{\text{oracle}}]$); if this is small ($<0.10$), a tie is expected, indicating that routing has minimal theoretical value on this task distribution.
+    \item \textbf{A Loss / Overfitting:} If $\pi_{\text{prov}}$ underperforms the fixed baseline, it implies the selector has learned a brittle mapping that overfits to specific task distributions or suffers from label leakage in the training split.
     \item \textbf{An Inconclusive Result:} If the statistical power is insufficient to distinguish the policies, we refer to our sample size pilot to determine if the rate of discordant cases was lower than expected.
 \end{itemize}
 
@@ -255,7 +263,7 @@ We present three worked examples to illustrate the mechanics of our specialists:
     \item \textbf{Task:} Expense claim for travel lodging on August 12, 2026, totaling \$220.
     \item \textbf{Primary Agent A:} Applies \code{travel\_policy\_Q1.pdf} (cap is \$200), outputs \code{Rejected(Amount)}.
     \item \textbf{Trace $\tau_A$:} $S_A = \{\text{\code{travel\_policy\_Q1.pdf}}\}$, $V_A = \{\text{\code{v1.0}}\}$, $\mathcal{C}_A = \{\text{"lodging capped at \$200"}\}$, $O_A = \{\text{text\_matching}\}$.
-    \item \textbf{PGV Decision:} The selector detects that the transaction date (Aug 12) is outside the effective range of the cited policy \code{v1.0} (ends June 30). It routes to \textbf{Verifier B} (policy-first).
+    \item \textbf{PGV Decision:} The selector compares the transaction metadata $x$ (Aug 12) with the policy version tag $V_A$ (\code{v1.0}, ending June 30) to detect that the date falls outside the effective range of the cited policy. It routes to \textbf{Verifier B} (policy-first).
     \item \textbf{Verifier B Action:} Verifier B queries the policy repository metadata, finds \code{travel\_policy\_Q3.pdf} (v2.0, effective July 1), sees the cap is \$250. It overrides A's decision and approves the \$220 lodging, producing the correct verdict \code{Approved(220.00)}.
 \end{itemize}
 
@@ -293,7 +301,7 @@ To measure whether the routing benefit comes from increased source access or spe
     \item \textbf{Source-Ablated Setup (Procedural Only):} We give both B and C access to the *exact same* raw files. However, we keep their procedures separate (B uses semantic temporal reasoning; C uses OCR and Python summation).
     \item \textbf{Procedure-Ablated Setup (Source Only):} We use a single verification procedure (a standard agent prompt) but restrict its inputs (B only gets policies; C only gets receipts).
 \end{itemize}
-This ablation allows us to separate the causal contribution of \emph{procedural specialization} from \emph{information asymmetry}. If the procedural-only setup outperforms the source-only setup, it supports the causal interpretation that **distinct reasoning procedures are the primary driver of complementary failure modes**, confirming that harness diversity is about ``how'' agents think, not just ``what'' they see.
+This ablation allows us to separate the causal contribution of \emph{procedural specialization} from \emph{information asymmetry}. We analyze this 2x2 factorial design by measuring the interaction effect between Source Access and Reasoning Procedure. A positive interaction term support the causal interpretation that **distinct reasoning procedures are the primary driver of complementary failure modes**, confirming that harness diversity is about ``how'' agents think, not just ``what'' they see.
 
 \section{Escalation and Evaluation Policies}
 \label{sec:policies}
@@ -306,7 +314,7 @@ To prevent the selector from learning a static mapping from task categories (whi
         0 & \text{otherwise}
     \end{cases}
 \end{equation}
-where $\text{Anomaly}(\tau_A) = 1$ when trace inconsistencies are detected (e.g., the policy document's effective dates mismatch the transaction date, or transaction records show calculations were accepted without executing any computational tool calls in $O_A$). This resolves calibration issues from self-reported agent uncertainty by grounding escalation in deterministic trace audit.
+where $\text{Anomaly}(\tau_A) = 1$ when trace inconsistencies are detected (e.g., the policy document's effective dates mismatch the transaction date, or transaction records show calculations were accepted without executing any computational tool calls in $O_A$). Uncertainty is defined as the primary model's token-level average log-entropy on its final compliance verdict. This trigger grounds escalation in deterministic trace audit.
 
 By keeping the escalation decisions *identical* across all routed policies, we ensure a perfect paired-case comparison of the routing strategies themselves. We compare nine policies on the evaluation split:
 \begin{enumerate}
@@ -346,34 +354,18 @@ Our primary endpoint is the **expected cost-sensitive loss** on the evaluation s
 We also report secondary metrics: deferral rate, verifier recovery before adjudication, harmful overrides (where a verifier overrides a correct initial verdict), and token/latency overhead.
 
 \subsection{Pilot and Statistical Power Plan}
-Our sample size plan focuses on the **discordant cases**—instances where the two routing choices lead to different final verdicts (i.e., where A is wrong, and exactly one of B or C is correct, and the selectors make different choices).
+Our sample size plan focuses on the **discordant cases**—instances where the two routing choices lead to different final verdicts. To calculate statistical power rigorously, we employ the **Exact Binomial Sign Test** (calculating exact cumulative probabilities of the binomial distribution) rather than relying on normal approximations, which break down on small discordant subsets.
 
-Let $r_{\text{disc}}$ be the rate of discordant cases in the population. In a pilot run of $N_{\text{pilot}} = 100$ escalated error cases, we measure $r_{\text{disc}}$. Using the standard **Connor exact paired McNemar formula**~\cite{connor1987sample}, the required number of discordant pairs $N_{\text{disc}}$ to detect a difference with power $1-\beta = 0.80$ at significance level $\alpha = 0.05$ is:
-\begin{equation}
-    N_{\text{disc}} = \frac{\left( z_{1-\alpha/2} \cdot 0.5 + z_{1-\beta} \cdot \sqrt{\psi(1-\psi)} \right)^2}{(\psi - 0.5)^2}
-\end{equation}
-where $\psi$ is the proportion of discordant cases where PGV is correct. The required number of escalated cases is then:
-\begin{equation}
-    N_{\text{escalated}} = \left\lceil \frac{N_{\text{disc}}}{r_{\text{disc}}} \right\rceil
-\end{equation}
-Our pilot run reveals $r_{\text{disc}} = \PilotDisc\%$ and $\psi = \PilotPsi\%$, resulting in a target of $\PilotDiscordantRequired$ discordant pairs, requiring a total of $\PilotRequiredCases$ escalated cases to establish significance. To handle non-independence of cases drawn from the same document families, we treat the document family as the unit of clustering. We apply a clustered bootstrap to estimate the true variance, adjusting $N_{\text{escalated}}$ upwards by the estimated design effect. Pilot data is strictly partitioned and held out from the final evaluation split.
+Let $r_{\text{disc}}$ be the rate of discordant cases in the population. In a pilot run of $N_{\text{pilot}} = 100$ escalated error cases, we measure $r_{\text{disc}}$. Let $\psi$ be the proportion of discordant cases where PGV is correct. For the weak baseline comparison (PGV vs Fixed B), where $\psi = \PilotPsi\%$ and $r_{\text{disc}} = \PilotDisc\%$, the exact binomial test requires $\PilotDiscordantRequired$ discordant pairs, translating to a target sample size of **$\PilotRequiredCases$ escalated cases**.
 
-\section{Failure Diagnostics and Interpretability}
-\label{sec:diagnose}
+However, for the harder baseline comparison (PGV vs the Task Heuristic), the effect size is significantly smaller: our pilot reveals $r_{\text{disc}} = \PilotDiscHard\%$ and $\psi = \PilotPsiHard\%$. To establish significance on this competitive baseline, the exact binomial test requires $\PilotDiscordantRequiredHard$ discordant pairs, translating to a much larger target of **$\PilotRequiredCasesHard$ escalated cases**. We plan our empirical study to target this hard baseline. To control for multiple comparisons across our eight non-oracle policies, we apply a Bonferroni correction, adjusting our target significance level to $\alpha_{\text{adj}} = 0.05/8$.
 
-To guarantee that our study yields actionable scientific insights even if the proposed selector underperforms or ties the baselines, we predefine a rigorous diagnostic framework:
+For our continuous primary cost endpoint, we apply a **Wilcoxon signed-rank test** or paired bootstrap on per-case loss values to establish statistical significance. To handle non-independence of cases drawn from the same document families, we treat the document family as the unit of clustering. We apply a clustered bootstrap to estimate the true variance, adjusting our sample sizes upwards by the design effect. Pilot data is strictly held out from evaluation.
 
-\begin{enumerate}
-    \item \textbf{Diagnostic 1 (Verifier Homogeneity):} If Verifier B and Verifier C rarely disagree on Agent A's errors (i.e., $R_B \approx R_C$), the failure is not our selector but the verifier catalog itself. The catalog lacks complementary checks for this task distribution, meaning we have failed to build diverse edges.
-    \item \textbf{Diagnostic 2 (Feature Insufficiency):} If B and C are complementary (H1 holds) but the selector $\pi_{\text{prov}}$ ties the task-type heuristic, the provenance features $\tau_A$ contain insufficient signal to distinguish the failure modes. We must extract deeper trace features (e.g., token-level attention or tool call arguments).
-    \item \textbf{Diagnostic 3 (Adjudication Misses):} If B or C frequently identifies the correct correction but the final accepted error rate does not improve, the bottleneck is the adjudication step $g(\cdot)$. Harmful overrides and unresolved conflicts are eating the verification value.
-    \item \textbf{Diagnostic 4 (Transfer Failure):} If selection works on constructed cases but fails on held-out source families, the selector has overfitted to the specific document structures or layout templates of the development split. We must scope our claims to the tested failure patterns and inspect which signals failed to transfer.
-\end{enumerate}
-
-\section{Pilot Simulation Results and Analysis}
+\section{Pipeline Validation and Sensitivity Simulation}
 \label{sec:results}
 
-We execute our pilot simulation over $10,000$ compliance runs. Figure~\ref{fig:plots} presents our empirical results, analyzing both the Reliability-Cost Frontier and the statistical power.
+To validate our evaluation pipeline and understand how PGV behaves under varying signal strengths, we execute our simulation pilot over $10,000$ simulated compliance runs. The simulation serves to validate the power calculations, test our cost estimators under explicit pricing, and perform a sensitivity analysis.
 
 \begin{figure}[h]
     \centering
@@ -393,16 +385,16 @@ We execute our pilot simulation over $10,000$ compliance runs. Figure~\ref{fig:p
         \IfFileExists{figures/power_analysis.pdf}{%
             \includegraphics[width=\textwidth]{figures/power_analysis.pdf}%
         }{%
-            \framebox[\textwidth]{\rule{0pt}{120pt} Connor McNemar Power Curve}%
+            \framebox[\textwidth]{\rule{0pt}{120pt} Sensitivity Analysis}%
         }
-        \caption{Connor Paired McNemar Power Curve}
+        \caption{Sensitivity Analysis}
         \label{fig:power_plot}
     \end{subfigure}
-    \caption{Experimental Results of the Pilot Simulation. Panel (a) displays system reliability (1 - uncaught error rate) against expected cost per case. Provenance-Guided Verification (PGV) achieves the optimal cost-reliability balance, significantly outperforming task heuristics and fixed verifier baselines. Panel (b) shows the required sample size for evaluation based on the Connor McNemar power calculation.}
+    \caption{Validation Simulation Pilot Results. Panel (a) displays system reliability (1 - uncaught error rate) against expected cost per case. Provenance-Guided Verification (PGV) achieves the optimal cost-reliability balance, outperforming task heuristics and fixed verifier baselines. Panel (b) shows the sensitivity analysis: expected cost per case plotted against the classification accuracy (fidelity) of the trace selector, mapping the break-even trace fidelity ($\BreakEvenFidelity\%$) required to beat the task heuristic.}
     \label{fig:plots}
 \end{figure}
 
-Table~\ref{tab:comparison} outlines the comparative metrics of the simulated policies, confirming that PGV successfully balances verification accuracy, execution costs, and human deferral costs.
+Table~\ref{tab:results_table} outlines the comparative metrics of the simulated policies under our cost-sensitive joint loss function, using the explicit parameters $C_A = 1.0$, $C_B = 1.5$, $C_C = 1.5$, $C_{\text{def}} = 10.0$, and $C_{\text{err}} = 30.0$.
 
 \begin{table}[h]
 \caption{Simulation Policy Performance Metrics.}
@@ -433,19 +425,26 @@ Oracle Selector & \OracleErrorRate\% & 13.70\% & \$\OracleCost & 0.14 \\
 \centering
 \begin{tabular}{lccc}
 \toprule
-Failure Category & Primary Agent A Error Rate & Verifier B Recovery Rate & Verifier C Recovery Rate \\
+Failure Category & Base Probability & Primary Agent A Error Rate & Verifier B Recovery Rate \\
 \midrule
-Stale Policy Version & \PolicyAError\% & \PolicyBRecovery\% & \PolicyCRecovery\% \\
-Record Discrepancy & \RecordAError\% & \RecordBRecovery\% & \RecordCRecovery\% \\
-Shared Omissions & \OmissionAError\% & \OmissionBRecovery\% & \OmissionCRecovery\% \\
+Clean Case & 50.0\% & 3.0\% & 95.0\% \\
+Stale Policy Version & 15.0\% & \PolicyAError\% & \PolicyBRecovery\% \\
+Record Discrepancy & 15.0\% & \RecordAError\% & \RecordBRecovery\% \\
+Conflicting Evidence & 10.0\% & 45.0\% & 30.0\% \\
+Shared Upstream Omission & 10.0\% & \OmissionAError\% & \OmissionBRecovery\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Analysis of Findings}
-As shown in Table~\ref{tab:results_table}, the primary agent alone suffers from an uncaught error rate of 33.47\%. A simple Same-Harness Retry offers minimal correction, only reducing errors to 28.35\% due to shared blindness. Fixed-verifier policies B and C cut errors significantly, but they fail to target specific case vulnerabilities. Running both B and C yields a low error rate of \RunBothErrorRate\% but incurs a massive deferral rate of 25.59\% (due to frequent verifier disagreement) and inflates case costs to \$\RunBothCost.
+\subsection{Analysis of Findings and Sensitivity Sweep}
 
-In contrast, our Provenance-Guided Selector (PGV) achieves an uncaught error rate of only \PgvErrorRate\% while maintaining a highly optimal deferral rate of 12.78\% and a minimal cost of \$\PgvCost\ per case. It achieves this by using execution provenance to detect shared omissions early—routing them directly to Defer to save verifier costs—and selecting the appropriate specialist verifier for temporal or computational issues.
+As shown in Table~\ref{tab:results_table}, our simulation pilot reveals that:
+\begin{itemize}
+    \item **Explanation of Invocation Rates:** The escalation trigger results in a $37.0\%$ escalation rate (meaning $37.0\%$ of cases require verification). Fixed Verifier B and C invoke verifiers on every escalated case (0.37 calls per case). In contrast, the Task Heuristic, DES, and PGV invoke only 0.28 verifiers per case. This is because on ``shared omission'' cases (which represent 10% of the population, escalated with 95% probability), these policies route directly to Defer without executing any verifier, saving verifier costs.
+    \item **Same-Harness Retry Math:** Same-Harness Retry runs an additional primary agent on escalated cases (adding $0.37 \times 1.0 = \$0.37$), but saves $5.12\%$ of error penalties ($0.0512 \times 30 = \$1.536$). This results in a final cost of $11.04 + 0.37 - 1.536 = \$9.88$, matching our simulated output.
+    \item **H3 Direct-to-Defer Metrics:** Our selector achieves an Omission Deferral Rate (Recall) of $\OmissionDeferRecall\%$ on missing source files, while maintaining a clean/correct false deferral rate of only $\CleanFalseDeferral\%$.
+    \item **Sensitivity Sweep:** Running a sweep over trace selector classification fidelity (Figure~\ref{fig:plots}b) demonstrates that **the break-even trace fidelity required for PGV to outperform the metadata-only Task Heuristic is $\BreakEvenFidelity\%$**. Above this fidelity, trace-based routing adds positive economic value, capping expected cost at \$5.33 (which closes 17% of the gap between the heuristic and the Oracle). Below this point, metadata-only task heuristics are superior due to selector error penalties.
+\end{itemize}
 
 \section{Longer-Term Research Agenda}
 \label{sec:agenda}
@@ -474,7 +473,7 @@ We propose three follow-up studies to expand the PGV framework:
 \end{itemize}
 
 
-\begin{thebibliography}{22}
+\begin{thebibliography}{23}
 \bibitem{paul2026shared} P. Paul, S. Sarkar. 2026. Shared Blindness in Agentic AI. AMF Working Paper.
 \bibitem{knight1986experimental} J. Knight, N. Leveson. 1986. An Experimental Evaluation of the Assumption of Independence in Multiversion Programming. IEEE Transactions on Software Engineering SE-12, 1 (1986), 96--109.
 \bibitem{avizienis1985nversion} A. Avizienis. 1985. The N-Version Approach to Fault-Tolerant Software. IEEE Transactions on Software Engineering SE-11, 12 (1985), 1491--1501.
@@ -489,14 +488,15 @@ We propose three follow-up studies to expand the PGV framework:
 \bibitem{madaan2023self} A. Madaan et al. 2023. Self-Refine: Iterative Refinement with Self-Feedback. Advances in Neural Information Processing Systems 36 (2023).
 \bibitem{saunders2022self} W. Saunders et al. 2022. Self-Critiquing Models for Assisting Human Evaluators. arXiv preprint arXiv:2206.05802 (2022).
 \bibitem{rothermel1997safe} G. Rothermel, M. J. Harrold. 1997. A safe, efficient regression test selection technique. ACM Transactions on Software Engineering and Methodology (TOSEM) 6, 2 (1997), 173--210.
-\bibitem{gligoric2015practical} M. Gligoric, L. Elousha, D. Marinov. 2015. Practical regression test selection with Ekstazi. Proceedings of the 2015 International Symposium on Software Testing and Analysis (2015), 225--235.
+\bibitem{gligoric2015practical} M. Gligoric, L. Eloushn, D. Marinov. 2015. Practical regression test selection with Ekstazi. Proceedings of the 2015 International Symposium on Software Testing and Analysis (2015), 225--235.
 \bibitem{kuncheva2003measures} L. Kuncheva, C. Whitaker. 2003. Measures of Diversity in Classifier Ensembles and Their Relationship with the Ensemble Accuracy. Machine Learning 51, 2 (2003), 181--207.
 \bibitem{goel2025great} V. Goel et~al. 2025. The Great Convergence: frontier models are making the same errors. arXiv preprint arXiv:2501.12345 (2025).
 \bibitem{kim2025correlated} J. Kim et~al. 2025. Correlated Mistakes in Modern Large Language Models. arXiv preprint arXiv:2502.54321 (2025).
-\bibitem{madras2018predict} D. Madras, T. Pitassi, R. Zemel. 2018. Predict and defer: Learning to defer with multiple experts. Advances in Neural Information Processing Systems 31 (2018).
+\bibitem{madras2018predict} D. Madras, T. Pitassi, R. Zemel. 2018. Predict Responsibly: Improving Fairness and Accuracy by Learning to Defer. Advances in Neural Information Processing Systems 31 (2018).
 \bibitem{verma2020learning} A. Verma et al. 2020. Learning to defer with multiple experts. arXiv preprint arXiv:2010.05245 (2020).
-\bibitem{routellm2024} I. An et al. 2024. RouteLLM: Learning to Route LLMs with Preference Data. arXiv preprint arXiv:2406.18665 (2024).
-\bibitem{cemri2025process} A. Cemri et al. 2025. Process-Level and Trace-Based Verification for Autonomous AI Agents. Working Paper, AI Safety Alliance (2025).
+\bibitem{routellm2024} I. Ong et al. 2024. RouteLLM: Learning to Route LLMs with Preference Data. arXiv preprint arXiv:2406.18665 (2024).
+\bibitem{agrawal2025why} A. Agrawal et al. 2025. Why Do Multi-Agent LLM Systems Fail? arXiv preprint arXiv:2503.13657 (2025).
+\bibitem{connor1987sample} R. J. Connor. 1987. Sample size for testing differences in proportions for the paired-sample design. Biometrics 43, 1 (1987), 207--211.
 \end{thebibliography}
 
 
